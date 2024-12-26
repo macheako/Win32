@@ -1,0 +1,61 @@
+name: Build Win32 (Release/x64)
+
+on:
+  push:
+    tags:
+      - build
+
+env:  
+  GH_TOKEN: ${{ github.token }}
+  GH_REF_NAME: ${{ github.ref_name }}
+  GH_WORKSPACE: ${{ github.workspace }}
+  InstallerDir: ${{ github.workspace }}\install
+
+jobs:
+  Build-Tracking:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          submodules: true
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        run: |
+          MSBuild Win32Console.sln -m -p:BuildNumber=${{ github.run_number }} -p:Platform=x64 -p:Configuration=Release -p:InstallerDir="${{ env.InstallerDir }}\"
+
+      - name: New Release Contents
+        run: |
+          dir ${{ env.InstallerDir }}\
+
+      - name: Get Version Info
+        run: |
+          [System.Diagnostics.FileVersionInfo]::GetVersionInfo((Get-Item ${{ env.InstallerDir }}\Win32Console.exe).FullName).FileVersion
+          $ExeVersion = [System.Diagnostics.FileVersionInfo]::GetVersionInfo((Get-Item ${{ env.InstallerDir }}\Win32Console.exe).FullName).FileVersion
+          Write-Host "File Version: $ExeVersion"
+          echo "ExeVersion=$ExeVersion" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Print Version Info
+        run: |
+          Write-Host ${{ env.ExeVersion }}
+          echo ${{ env.ExeVersion }}
+      
+      # - name: Create Release Package (Zip)
+      #   run: |
+      #     Compress-Archive -Path "${{ env.InstallerDir }}\*" -DestinationPath ub-tracking.zip
+  
+      # - name: Publish Release
+      #   run: |
+      #     gh release create UB-Tracking ub-tracking.zip --notes "Release | x64" --title 'UB-Tracking'
+      #   env:
+      #       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+      - name: Remove Tag
+        run: |
+          git push --delete origin "$Env:GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

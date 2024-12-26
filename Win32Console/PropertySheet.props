@@ -4,7 +4,9 @@
   <PropertyGroup Label="UserMacros">
     <BuildNumber>0</BuildNumber>
   </PropertyGroup>
-  <PropertyGroup />
+  <PropertyGroup>
+    <_PropertySheetDisplayName>Build</_PropertySheetDisplayName>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalOptions>/DBUILD_NUMBER=$(BuildNumber) %(AdditionalOptions)</AdditionalOptions>
