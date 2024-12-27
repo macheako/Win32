@@ -21,6 +21,14 @@ jobs:
           ref: master
           submodules: true
 
+      - name: Init Environment
+        run: |
+          echo "ExePath=$InstallerDir\my.exe" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Test Shit
+        run: |
+          Write-Host "Path : ${{ env.ExePath }}" 
+
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
 
